@@ -1,0 +1,22 @@
+{
+  "name": "git-dashboard",
+  "version": "2.0.0",
+  "description": "GIT DASHBOARD - 기업 인텔리전스 대시보드 (Vercel + Supabase)",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "collect": "node -e \"require('dotenv').config(); require('./server/collector/scheduler').runCollection().then(r=>{console.log(r);process.exit(0)})\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "pg": "^8.13.0"
+  }
+}

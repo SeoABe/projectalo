@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GIT DASHBOARD - 기업 인텔리전스 대시보드. KT이동통신 경쟁사, 중앙일보, 한화전략부문 정보 큐레이션.">
+  <title>GIT DASHBOARD — 기업 인텔리전스</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">GIT</div>
+        <span>GIT DASHBOARD</span>
+      </div>
+      <div class="week-badge">
+        <i data-lucide="calendar" style="width:14px;height:14px"></i>
+        <span id="weekBadge"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs">
+    <div class="nav-tabs-inner" id="navTabs"></div>
+  </nav>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-bar-inner">
+      <div class="filter-label">
+        <i data-lucide="filter" style="width:14px;height:14px"></i>
+        필터
+      </div>
+      <select class="filter-select" id="impactFilter"></select>
+      <div class="search-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="키워드 검색...">
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="mainContent"></main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>GIT DASHBOARD © 2026 — Last updated: <span id="lastUpdated"></span></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+runtime/
+.env
+dashboard.db
+dashboard.db-shm
+dashboard.db-wal
+scratch_check_*.js
+시작.bat
+.vscode/
+server/index.js
+server/collector/keywords.js

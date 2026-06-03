@@ -1,0 +1,14 @@
+node_modules/
+runtime/
+.vercel/
+.env
+.env.local
+*.log
+
+# 로컬 SQLite 잔여물 (더 이상 사용 안 함)
+dashboard.db
+dashboard.db-shm
+dashboard.db-wal
+
+# 개발용 스크래치
+scratch_check_*.js

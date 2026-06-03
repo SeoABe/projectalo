@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIT ADMIN — 관리자 페이지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #1a1d27;
+  --bg3: #21263a;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8eaf6;
+  --muted: #6b7280;
+  --blue: #3b82f6;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  --purple: #8b5cf6;
+  --radius: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+.sidebar-logo{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;}
+.logo-text{font-size:15px;font-weight:800;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-label{padding:16px 16px 6px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;margin:1px 8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:rgba(59,130,246,.15);color:var(--blue);}
+.nav-item.active svg{stroke:var(--blue);}
+.main{margin-left:220px;flex:1;padding:28px 32px;min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:24px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.stat-value{font-size:28px;font-weight:800;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#2563eb;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:#16a34a;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#dc2626;}
+.btn-ghost{background:var(--bg3);color:var(--text);}
+.btn-ghost:hover{background:rgba(255,255,255,.1);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.table{width:100%;border-collapse:collapse;}
+.table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.table td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.table tr:hover td{background:var(--bg3);}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;color:#fff;letter-spacing:.3px;}
+.badge-green{background:rgba(34,197,94,.2);color:#4ade80;}
+.badge-red{background:rgba(239,68,68,.2);color:#f87171;}
+.badge-orange{background:rgba(245,158,11,.2);color:#fbbf24;}
+.badge-blue{background:rgba(59,130,246,.2);color:#60a5fa;}
+.badge-gray{background:rgba(107,114,128,.2);color:#9ca3af;}
+.input{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;color:var(--text);width:100%;outline:none;font-family:inherit;transition:border .2s;}
+.input:focus{border-color:var(--blue);}
+.input-group{margin-bottom:14px;}
+.input-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;display:block;}
+select.input{cursor:pointer;}
+textarea.input{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:12px;}
+.tag .del{cursor:pointer;color:var(--red);margin-left:2px;}
+.tag-input-row{display:flex;gap:8px;}
+.keyword-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;}
+.keyword-block-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.impact-row{display:grid;grid-template-columns:1fr 160px 48px 36px;gap:8px;align-items:center;margin-bottom:8px;}
+.impact-color-swatch{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;}
+.progress-bar-wrap{background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;margin-top:8px;}
+.progress-bar{height:6px;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .5s;}
+.log-row{display:grid;grid-template-columns:160px 80px 100px 1fr;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.log-row:last-child{border-bottom:none;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+.dot-green{background:var(--green);}
+.dot-red{background:var(--red);}
+.dot-orange{background:var(--orange);}
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.alert-info{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slideIn .3s ease;display:flex;align-items:center;gap:8px;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:none;opacity:1;}}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.collection-status{display:flex;align-items:center;gap:12px;}
+.pulse{animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}
+.impact-row{grid-template-columns:1fr 100px 48px 36px;}
+.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">GIT</div>
+    <span class="logo-text">ADMIN</span>
+  </div>
+  <div class="sidebar-label">Overview</div>
+  <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+    <i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>대시보드
+  </div>
+  <div class="sidebar-label">수집 관리</div>
+  <div class="nav-item" onclick="showPage('collector')" id="nav-collector">
+    <i data-lucide="download-cloud" style="width:16px;height:16px"></i>수집 제어
+  </div>
+  <div class="nav-item" onclick="showPage('keywords')" id="nav-keywords">
+    <i data-lucide="tag" style="width:16px;height:16px"></i>키워드 설정
+  </div>
+  <div class="nav-item" onclick="showPage('impact')" id="nav-impact">
+    <i data-lucide="zap" style="width:16px;height:16px"></i>Impact 분류 규칙
+  </div>
+  <div class="sidebar-label">데이터 관리</div>
+  <div class="nav-item" onclick="showPage('cards')" id="nav-cards">
+    <i data-lucide="file-text" style="width:16px;height:16px"></i>카드 관리
+  </div>
+  <div class="nav-item" onclick="showPage('urgents')" id="nav-urgents">
+    <i data-lucide="alert-triangle" style="width:16px;height:16px"></i>긴급 알림
+  </div>
+  <div class="nav-item" onclick="showPage('profiles')" id="nav-profiles">
+    <i data-lucide="users" style="width:16px;height:16px"></i>인물 프로필
+  </div>
+  <div style="margin-top:auto;padding:16px;border-top:1px solid var(--border);">
+    <a href="/" target="_blank" class="nav-item" style="text-decoration:none;display:flex;">
+      <i data-lucide="external-link" style="width:16px;height:16px"></i>대시보드 보기
+    </a>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ── DASHBOARD PAGE ── -->
+  <div class="page active" id="page-dashboard">
+    <h1>🖥 관리자 대시보드</h1>
+    <p class="subtitle">GIT DASHBOARD 시스템 현황 및 빠른 액션</p>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-label"><i data-lucide="file-text" style="width:13px;height:13px"></i>카드</div><div class="stat-value" id="statCards">—</div><div class="stat-sub">전체 동향 카드</div></div>
+      <div class="stat-card"><div class="stat-label"><i data-lucide="list" style="width:13px;height:13px"></i>아이템</div><div class="stat-value" id="statItems">—</div><div class="stat-sub">카드 내 뉴스 항목</div></div>
+      <div class="stat-card"><div class="stat-label"><i data-lucide="users" style="width:13px;height:13px"></i>프로필</div><div class="stat-value" id="statProfiles">—</div><div class="stat-sub">등록된 인물</div></div>
+      <div class="stat-card"><div class="stat-label"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i>긴급 알림</div><div class="stat-value" id="statUrgents">—</div><div class="stat-sub">활성 알림</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i data-lucide="activity" style="width:16px;height:16px;color:#3b82f6"></i>마지막 수집</span>
+          <button class="btn btn-success btn-sm" onclick="runCollect()"><i data-lucide="play" style="width:13px;height:13px"></i>즉시 실행</button>
+        </div>
+        <div id="lastCollectInfo" style="color:var(--muted);font-size:13px;">로딩 중...</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i data-lucide="link" style="width:16px;height:16px;color:#8b5cf6"></i>빠른 이동</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-ghost" onclick="showPage('keywords')"><i data-lucide="tag" style="width:13px;height:13px"></i>키워드 설정 수정</button>
+          <button class="btn btn-ghost" onclick="showPage('urgents')"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i>긴급 알림 추가</button>
+          <button class="btn btn-ghost" onclick="showPage('cards')"><i data-lucide="file-text" style="width:13px;height:13px"></i>카드 데이터 관리</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-header"><span class="card-title"><i data-lucide="scroll" style="width:16px;height:16px;color:#f59e0b"></i>최근 수집 로그</span></div>
+      <div id="recentLogs"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── COLLECTOR PAGE ── -->
+  <div class="page" id="page-collector">
+    <h1>⚡ 수집 제어</h1>
+    <p class="subtitle">뉴스 및 RSS 데이터 수집을 수동으로 실행하고 로그를 확인합니다.</p>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i data-lucide="download-cloud" style="width:16px;height:16px;color:#22c55e"></i>수집 실행</span>
+        <div class="collection-status" id="collectStatus"></div>
+      </div>
+      <div class="alert alert-info">
+        <i data-lucide="info" style="width:16px;height:16px"></i>
+        수집 스케줄: 매일 오전 8:00 자동 실행. 아래 버튼으로 즉시 실행할 수 있습니다.
+      </div>
+      <button class="btn btn-success" id="btnCollect" onclick="runCollect()">
+        <i data-lucide="play" style="width:14px;height:14px"></i>지금 수집 실행
+      </button>
+      <div id="collectResult" style="margin-top:16px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="scroll" style="width:16px;height:16px;color:#f59e0b"></i>수집 로그 (최근 50건)</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadLogs()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>새로고침</button>
+      </div>
+      <div id="logsContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── KEYWORDS PAGE ── -->
+  <div class="page" id="page-keywords">
+    <h1>🏷 키워드 설정</h1>
+    <p class="subtitle">카테고리별 검색 키워드와 RSS 피드 URL을 관리합니다.</p>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="tag" style="width:16px;height:16px;color:#3b82f6"></i>검색 키워드 & RSS</span>
+        <button class="btn btn-primary" onclick="saveKeywords()"><i data-lucide="save" style="width:13px;height:13px"></i>저장</button>
+      </div>
+      <div id="keywordsContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── IMPACT RULES PAGE ── -->
+  <div class="page" id="page-impact">
+    <h1>⚡ Impact 분류 규칙</h1>
+    <p class="subtitle">뉴스 항목의 자동 Impact 분류에 사용되는 키워드와 색상을 관리합니다.</p>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="zap" style="width:16px;height:16px;color:#8b5cf6"></i>분류 규칙 목록</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="addImpactRule()"><i data-lucide="plus" style="width:13px;height:13px"></i>규칙 추가</button>
+          <button class="btn btn-primary btn-sm" onclick="saveKeywords()"><i data-lucide="save" style="width:13px;height:13px"></i>저장</button>
+        </div>
+      </div>
+      <div id="impactContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── CARDS PAGE ── -->
+  <div class="page" id="page-cards">
+    <h1>📄 카드 관리</h1>
+    <p class="subtitle">DB에 저장된 동향 카드를 조회하고 삭제합니다.</p>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="file-text" style="width:16px;height:16px;color:#3b82f6"></i>카드 목록</span>
+        <div style="display:flex;gap:8px;">
+          <select class="input" style="width:160px;" id="cardCatFilter" onchange="loadCards()">
+            <option value="">전체 카테고리</option>
+            <option value="kt">KT이동통신</option>
+            <option value="joongang">중앙일보</option>
+            <option value="hanhwa">한화전략</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadCards()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i></button>
+        </div>
+      </div>
+      <div id="cardsContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── URGENTS PAGE ── -->
+  <div class="page" id="page-urgents">
+    <h1>🚨 긴급 알림</h1>
+    <p class="subtitle">대시보드 상단에 표시되는 긴급 알림을 관리합니다.</p>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="plus-circle" style="width:16px;height:16px;color:#22c55e"></i>새 알림 추가</span></div>
+      <div class="form-row">
+        <div class="input-group"><label class="input-label">카테고리</label>
+          <select class="input" id="newUrgentCat">
+            <option value="kt">KT이동통신</option>
+            <option value="joongang">중앙일보</option>
+            <option value="hanhwa">한화전략</option>
+          </select>
+        </div>
+        <div class="input-group"><label class="input-label">중요도</label>
+          <select class="input" id="newUrgentLevel">
+            <option value="high">HIGH</option>
+            <option value="medium">MEDIUM</option>
+            <option value="low">LOW</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group"><label class="input-label">메시지</label>
+        <textarea class="input" id="newUrgentMsg" placeholder="긴급 알림 내용을 입력하세요..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="addUrgent()"><i data-lucide="plus" style="width:13px;height:13px"></i>추가</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#ef4444"></i>알림 목록</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadUrgents()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>새로고침</button>
+      </div>
+      <div id="urgentsContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- ── PROFILES PAGE ── -->
+  <div class="page" id="page-profiles">
+    <h1>👤 인물 프로필</h1>
+    <p class="subtitle">대시보드에 표시되는 주요 인물 정보를 관리합니다.</p>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i data-lucide="users" style="width:16px;height:16px;color:#8b5cf6"></i>프로필 목록</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadProfiles()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>새로고침</button>
+      </div>
+      <div id="profilesContainer"><div style="color:var(--muted);font-size:13px;">로딩 중...</div></div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
