@@ -4,6 +4,9 @@
 // - window.fetch 를 패치하여 /api 요청에 Bearer 토큰 자동 첨부
 // - window.GitAuth.ensureSession() 으로 앱 시작을 게이트
 (function () {
+  // 사용자는 "아이디"만 입력 → 내부적으로 아이디@LOGIN_DOMAIN 으로 Supabase 인증
+  const LOGIN_DOMAIN = 'git-dashboard.local';
+
   let supaClient = null;
   let currentToken = null;
   let resolveReady;
@@ -59,8 +62,8 @@
         <h2>GIT DASHBOARD</h2>
         <p>계속하려면 로그인하세요.</p>
         <form id="git-auth-form">
-          <label>이메일</label>
-          <input type="email" id="git-auth-email" autocomplete="username" required>
+          <label>아이디</label>
+          <input type="text" id="git-auth-email" autocomplete="username" required>
           <label>비밀번호</label>
           <input type="password" id="git-auth-pw" autocomplete="current-password" required>
           <button type="submit" id="git-auth-submit">로그인</button>
@@ -77,7 +80,9 @@
       errEl.textContent = '';
       btn.disabled = true;
       btn.textContent = '로그인 중...';
-      const email = wrap.querySelector('#git-auth-email').value.trim();
+      const rawId = wrap.querySelector('#git-auth-email').value.trim();
+      // 아이디만 입력하면 고정 도메인을 붙여 이메일 형식으로 변환 (@ 직접 입력 시 그대로 사용)
+      const email = rawId.includes('@') ? rawId : rawId + '@' + LOGIN_DOMAIN;
       const password = wrap.querySelector('#git-auth-pw').value;
       const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
       if (error || !data.session) {
