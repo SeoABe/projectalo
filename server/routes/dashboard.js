@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
     // Cards
     const catIds = categoryFilter && categoryFilter !== 'all'
       ? [categoryFilter]
-      : ['kt', 'joongang', 'hanhwa'];
+      : ['kt', 'competitor', 'joongang', 'hanhwa'];
 
     const cards = {};
     for (const catId of catIds) {
