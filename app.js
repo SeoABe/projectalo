@@ -49,11 +49,32 @@ class DashboardApp {
     });
   }
 
-  switchTab(categoryId) {
+  async switchTab(categoryId) {
     this.currentCategory = categoryId;
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`[data-tab="${categoryId}"]`).classList.add('active');
+    await this.ensureCategoryData(categoryId);
     this.renderContent();
+  }
+
+  // 특정 카테고리 탭의 데이터를 필요 시 추가로 불러와 병합 (전체 개요엔 없는 카테고리 대응)
+  async ensureCategoryData(categoryId) {
+    if (categoryId === 'all') return;
+    if (this.data.cards && this.data.cards[categoryId]) return; // 이미 로드됨
+    try {
+      const res = await fetch('/api/dashboard?category=' + encodeURIComponent(categoryId));
+      if (!res.ok) return;
+      const d = await res.json();
+      Object.assign(this.data.cards, d.cards || {});
+      Object.assign(this.data.profiles, d.profiles || {});
+      if (d.summary) Object.assign(this.data.summary, d.summary);
+      if (Array.isArray(d.urgent)) {
+        const have = new Set(this.data.urgent.map(u => u.id));
+        d.urgent.forEach(u => { if (!have.has(u.id)) this.data.urgent.push(u); });
+      }
+    } catch (e) {
+      console.warn('[Dashboard] category load failed:', categoryId, e);
+    }
   }
 
   renderTabs() {
@@ -78,7 +99,7 @@ class DashboardApp {
 
   getFilteredCards(categoryId) {
     let cardKeys = categoryId === 'all'
-      ? Object.keys(this.data.cards)
+      ? Object.keys(this.data.cards).filter(k => k !== 'competitor')
       : [categoryId];
 
     let allCards = [];
@@ -119,12 +140,12 @@ class DashboardApp {
 
     // Urgent
     const urgents = cat === 'all'
-      ? this.data.urgent
+      ? this.data.urgent.filter(u => u.category !== 'competitor')
       : this.data.urgent.filter(u => u.category === cat);
 
     // Summary
     let summaryKeys = cat === 'all'
-      ? Object.keys(this.data.summary)
+      ? Object.keys(this.data.summary).filter(k => k !== 'competitor')
       : [cat];
 
     // Cards
@@ -132,7 +153,7 @@ class DashboardApp {
 
     // Profiles
     let profileKeys = cat === 'all'
-      ? Object.keys(this.data.profiles)
+      ? Object.keys(this.data.profiles).filter(k => k !== 'competitor')
       : [cat];
 
     let html = '';
