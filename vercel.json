@@ -3,6 +3,14 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
+      ]
+    }
+  ],
   "functions": {
     "api/index.js": { "maxDuration": 60 }
   },
