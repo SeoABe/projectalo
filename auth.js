@@ -84,17 +84,23 @@
       // 아이디만 입력하면 고정 도메인을 붙여 이메일 형식으로 변환 (@ 직접 입력 시 그대로 사용)
       const email = rawId.includes('@') ? rawId : rawId + '@' + LOGIN_DOMAIN;
       const password = wrap.querySelector('#git-auth-pw').value;
-      const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
-      if (error || !data.session) {
-        errEl.textContent = '로그인 실패: ' + (error ? error.message : '세션을 만들 수 없습니다.');
+      try {
+        if (!supaClient) {
+          throw new Error('인증 설정이 로드되지 않았습니다. (SUPABASE_URL / SUPABASE_ANON_KEY 환경변수 확인 후 재배포)');
+        }
+        const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
+        if (error || !data.session) {
+          throw new Error(error ? error.message : '세션을 만들 수 없습니다.');
+        }
+        currentToken = data.session.access_token;
+        wrap.remove();
+        addLogoutButton();
+        resolveReady();
+      } catch (err) {
+        errEl.textContent = '로그인 실패: ' + (err && err.message ? err.message : String(err));
         btn.disabled = false;
         btn.textContent = '로그인';
-        return;
       }
-      currentToken = data.session.access_token;
-      wrap.remove();
-      addLogoutButton();
-      resolveReady();
     });
   }
 
