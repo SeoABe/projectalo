@@ -55,12 +55,17 @@ router.get('/cards', async (req, res) => {
     const rows = cat
       ? await all('SELECT * FROM cards WHERE category_id=$1 ORDER BY created_at DESC', [cat])
       : await all('SELECT * FROM cards ORDER BY category_id, created_at DESC');
-    const result = [];
-    for (const c of rows) {
-      const items = await all('SELECT * FROM card_items WHERE card_id=$1 ORDER BY id', [c.id]);
-      const tags  = (await all('SELECT tag FROM card_tags WHERE card_id=$1', [c.id])).map(t => t.tag);
-      result.push({ ...c, items, tags });
+
+    // N+1 제거: items/tags 각각 1회 조회 후 그룹핑
+    let itemsByCard = {}, tagsByCard = {};
+    if (rows.length) {
+      const ids = rows.map(c => c.id);
+      (await all('SELECT * FROM card_items WHERE card_id = ANY($1) ORDER BY id', [ids]))
+        .forEach(i => { (itemsByCard[i.card_id] = itemsByCard[i.card_id] || []).push(i); });
+      (await all('SELECT card_id, tag FROM card_tags WHERE card_id = ANY($1)', [ids]))
+        .forEach(t => { (tagsByCard[t.card_id] = tagsByCard[t.card_id] || []).push(t.tag); });
     }
+    const result = rows.map(c => ({ ...c, items: itemsByCard[c.id] || [], tags: tagsByCard[c.id] || [] }));
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

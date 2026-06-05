@@ -67,5 +67,19 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 
 ---
 
+## 7. 성능 / 서버 부하 최적화 — ✅ 완료
+**문제**: 요청당 DB 왕복이 과다. `/api/dashboard`가 카드 1개당 items/tags 2쿼리(N+1) → 카드 수십~수백이면 왕복 수백 회. 수집도 항목 단위 INSERT.
+
+**작업**
+- [x] 대시보드 N+1 제거: 카드/아이템/태그/프로필을 각각 1회 조회 후 JS 그룹핑(`= ANY($1)`) — 왕복 수백→약 5회
+- [x] 동일 패턴 제거: `/api/cards`, `/api/admin/cards`
+- [x] 수집 INSERT 배치화: 카드별 items/tags를 다중행 INSERT 1회로
+- [ ] (보류) JWT 로컬검증 — 단일 사용자엔 이득<비용이라 제외
+- [ ] (보류) `/api/dashboard` CDN 캐싱 — 인증 헤더로 캐시 까다로워 보류
+
+**대상**: [dashboard.js](server/routes/dashboard.js), [cards.js](server/routes/cards.js), [admin.js](server/routes/admin.js), [scheduler.js](server/collector/scheduler.js)
+
+---
+
 ### 진행 현황
 - **2026-06-04**: 1번 착수.

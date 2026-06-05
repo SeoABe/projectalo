@@ -111,16 +111,26 @@ async function runCollection(onlyCategory = null) {
           await q('DELETE FROM card_items WHERE card_id=$1', [card.id]);
           await q('DELETE FROM card_tags WHERE card_id=$1', [card.id]);
 
-          for (const item of card.items) {
-            await q(
-              `INSERT INTO card_items (card_id,title,impact,impact_color,description,source,date,source_url)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-              [card.id, item.title, item.impact, item.impactColor, item.description, item.source, item.date, item.url || null]
-            );
-            totalItems++;
+          // 다중행 배치 INSERT (왕복 최소화)
+          if (card.items.length) {
+            const vals = [];
+            const ph = card.items.map((item, k) => {
+              const b = k * 8;
+              vals.push(card.id, item.title, item.impact, item.impactColor, item.description, item.source, item.date, item.url || null);
+              return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8})`;
+            }).join(',');
+            await q(`INSERT INTO card_items (card_id,title,impact,impact_color,description,source,date,source_url) VALUES ${ph}`, vals);
+            totalItems += card.items.length;
           }
-          for (const t of (card.tags || [])) {
-            await q('INSERT INTO card_tags (card_id,tag) VALUES ($1,$2)', [card.id, t]);
+          const cardTags = card.tags || [];
+          if (cardTags.length) {
+            const vals = [];
+            const ph = cardTags.map((t, k) => {
+              const b = k * 2;
+              vals.push(card.id, t);
+              return `($${b+1},$${b+2})`;
+            }).join(',');
+            await q(`INSERT INTO card_tags (card_id,tag) VALUES ${ph}`, vals);
           }
         }
 

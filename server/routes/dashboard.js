@@ -51,35 +51,50 @@ router.get('/', async (req, res) => {
       ? [categoryFilter]
       : ['kt', 'joongang', 'hanhwa'];
 
+    // N+1 제거: 카드/아이템/태그를 각각 1회만 조회 후 JS에서 그룹핑
     const cards = {};
-    for (const catId of catIds) {
-      const cardRows = await all('SELECT * FROM cards WHERE category_id=$1 ORDER BY created_at DESC', [catId]);
-      cards[catId] = [];
-      for (const card of cardRows) {
-        const items = await all('SELECT * FROM card_items WHERE card_id=$1 ORDER BY id', [card.id]);
-        const tags = (await all('SELECT tag FROM card_tags WHERE card_id=$1', [card.id])).map(t => t.tag);
-        cards[catId].push({
+    catIds.forEach(c => { cards[c] = []; });
+    const cardRows = await all(
+      'SELECT * FROM cards WHERE category_id = ANY($1) ORDER BY created_at DESC',
+      [catIds]
+    );
+    if (cardRows.length) {
+      const cardIds = cardRows.map(c => c.id);
+      const itemRows = await all('SELECT * FROM card_items WHERE card_id = ANY($1) ORDER BY id', [cardIds]);
+      const tagRows = await all('SELECT card_id, tag FROM card_tags WHERE card_id = ANY($1)', [cardIds]);
+
+      const itemsByCard = {};
+      itemRows.forEach(i => { (itemsByCard[i.card_id] = itemsByCard[i.card_id] || []).push(i); });
+      const tagsByCard = {};
+      tagRows.forEach(t => { (tagsByCard[t.card_id] = tagsByCard[t.card_id] || []).push(t.tag); });
+
+      cardRows.forEach(card => {
+        if (!cards[card.category_id]) cards[card.category_id] = [];
+        cards[card.category_id].push({
           id: card.id, title: card.title, icon: card.icon,
           badge: card.badge_text ? { text: card.badge_text, color: card.badge_color } : null,
-          dateRange: card.date_range, category: card.category_id, tags,
-          items: items.map(i => ({
+          dateRange: card.date_range, category: card.category_id,
+          tags: tagsByCard[card.id] || [],
+          items: (itemsByCard[card.id] || []).map(i => ({
             title: i.title, impact: i.impact, impactColor: i.impact_color,
             description: i.description, source: i.source, date: i.date, url: i.source_url
           }))
         });
-      }
+      });
     }
 
-    // Profiles
+    // Profiles (한 번에 조회 후 그룹핑)
     const profiles = {};
-    for (const catId of catIds) {
-      profiles[catId] = (await all('SELECT * FROM profiles WHERE category_id=$1', [catId]))
-        .map(p => ({
-          name: p.name, position: p.position, org: p.org,
-          badge: { text: p.badge_text, color: p.badge_color },
-          desc: p.description, icon: 'user'
-        }));
-    }
+    catIds.forEach(c => { profiles[c] = []; });
+    const profileRows = await all('SELECT * FROM profiles WHERE category_id = ANY($1)', [catIds]);
+    profileRows.forEach(p => {
+      if (!profiles[p.category_id]) profiles[p.category_id] = [];
+      profiles[p.category_id].push({
+        name: p.name, position: p.position, org: p.org,
+        badge: { text: p.badge_text, color: p.badge_color },
+        desc: p.description, icon: 'user'
+      });
+    });
 
     // Filter options
     const filterOptions = {

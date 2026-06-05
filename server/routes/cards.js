@@ -8,8 +8,15 @@ router.get('/', async (req, res) => {
     const cat = req.query.category;
     const cards = cat ? await all('SELECT * FROM cards WHERE category_id=$1', [cat])
                       : await all('SELECT * FROM cards');
-    const result = [];
-    for (const c of cards) result.push(await enrichCard(c));
+    let itemsByCard = {}, tagsByCard = {};
+    if (cards.length) {
+      const ids = cards.map(c => c.id);
+      (await all('SELECT * FROM card_items WHERE card_id = ANY($1) ORDER BY id', [ids]))
+        .forEach(i => { (itemsByCard[i.card_id] = itemsByCard[i.card_id] || []).push(i); });
+      (await all('SELECT card_id, tag FROM card_tags WHERE card_id = ANY($1)', [ids]))
+        .forEach(t => { (tagsByCard[t.card_id] = tagsByCard[t.card_id] || []).push(t.tag); });
+    }
+    const result = cards.map(c => ({ ...c, items: itemsByCard[c.id] || [], tags: tagsByCard[c.id] || [] }));
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -60,11 +67,5 @@ router.post('/:id/items', async (req, res) => {
     res.json({ success: true, id: r.id });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-async function enrichCard(card) {
-  const items = await all('SELECT * FROM card_items WHERE card_id=$1', [card.id]);
-  const tags = (await all('SELECT tag FROM card_tags WHERE card_id=$1', [card.id])).map(t => t.tag);
-  return { ...card, items, tags };
-}
 
 module.exports = router;
