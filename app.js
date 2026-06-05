@@ -4,6 +4,7 @@ class DashboardApp {
   constructor() {
     this.currentCategory = 'all';
     this.currentImpactFilter = 'all';
+    this.currentDateFilter = 'all';
     this.searchQuery = '';
     this.data = null;
   }
@@ -45,6 +46,11 @@ class DashboardApp {
     });
     document.getElementById('impactFilter').addEventListener('change', (e) => {
       this.currentImpactFilter = e.target.value;
+      this.renderContent();
+    });
+    const dateEl = document.getElementById('dateFilter');
+    if (dateEl) dateEl.addEventListener('change', (e) => {
+      this.currentDateFilter = e.target.value;
       this.renderContent();
     });
   }
@@ -95,6 +101,35 @@ class DashboardApp {
     select.innerHTML = this.data.filterOptions.impactTypes.map(opt =>
       `<option value="${opt.value}">${opt.label}</option>`
     ).join('');
+
+    const dateSel = document.getElementById('dateFilter');
+    if (dateSel && this.data.filterOptions.dateRange) {
+      dateSel.innerHTML = this.data.filterOptions.dateRange.map(opt =>
+        `<option value="${opt.value}">${opt.label}</option>`
+      ).join('');
+    }
+  }
+
+  // 'YYYY.MM.DD' 형식 날짜가 현재 기간 필터에 해당하는지
+  matchesDate(dateStr) {
+    if (this.currentDateFilter === 'all' || !dateStr) return true;
+    const m = String(dateStr).match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/);
+    if (!m) return true; // 형식 모르면 통과
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    if (isNaN(d.getTime())) return true;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (this.currentDateFilter === 'today') {
+      return d.getTime() === today.getTime();
+    }
+    if (this.currentDateFilter === 'week') {
+      const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 6); // 오늘 포함 최근 7일
+      return d >= weekAgo && d <= today;
+    }
+    if (this.currentDateFilter === 'month') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }
+    return true;
   }
 
   getFilteredCards(categoryId) {
@@ -115,6 +150,14 @@ class DashboardApp {
         const filtered = card.items.filter(item =>
           item.impact === this.currentImpactFilter
         );
+        return filtered.length > 0 ? { ...card, items: filtered } : null;
+      }).filter(Boolean);
+    }
+
+    // Date range filter
+    if (this.currentDateFilter !== 'all') {
+      allCards = allCards.map(card => {
+        const filtered = card.items.filter(item => this.matchesDate(item.date));
         return filtered.length > 0 ? { ...card, items: filtered } : null;
       }).filter(Boolean);
     }

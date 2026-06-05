@@ -109,6 +109,19 @@ async function runCollection(onlyCategory = null) {
       }
     }
 
+    // 오래된 카드 정리 (보존기간 경과분 삭제 — card_items/card_tags는 FK CASCADE)
+    try {
+      const days = parseInt(process.env.RETENTION_DAYS || '14', 10);
+      const del = await q(
+        `DELETE FROM cards
+         WHERE created_at < to_char(timezone('Asia/Seoul', now()) - ($1 * interval '1 day'), 'YYYY-MM-DD HH24:MI:SS')`,
+        [days]
+      );
+      if (del.rowCount) console.log(`[Collector] Retention: removed ${del.rowCount} cards older than ${days}d`);
+    } catch (e) {
+      console.error('[Collector] Retention cleanup failed:', e.message);
+    }
+
     // 수집 로그 기록
     await q('INSERT INTO collection_logs (status, items_collected, errors) VALUES ($1,$2,$3)',
       [errors.length > 0 ? 'partial' : 'success', totalItems, errors.join('; ') || null]);
