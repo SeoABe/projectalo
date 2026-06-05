@@ -218,22 +218,24 @@ class DashboardApp {
       html += `</div>`;
     }
 
-    // SUMMARY
-    html += `<div class="section-label" style="margin-top:24px">WK${this.data.meta.week.replace('WK','')} UPDATE SUMMARY — 지난 주 대비 변경사항</div>`;
-    html += `<div class="summary-grid">`;
-    summaryKeys.forEach((key, i) => {
-      const s = this.data.summary[key];
-      if (!s) return;
-      html += `
-        <div class="summary-card animate-in" style="animation-delay:${i * 100}ms">
-          <div style="position:absolute;left:0;top:0;width:4px;height:100%;background:${s.color}"></div>
-          <div class="summary-source" style="color:${s.color};background:${s.color}15">
-            ${s.source}
-          </div>
-          <div class="summary-content">${this.highlightText(s.content)}</div>
-        </div>`;
-    });
-    html += `</div>`;
+    // SUMMARY (데이터 있는 카테고리만 — 없으면 섹션 자체를 숨김)
+    const summaryEntries = summaryKeys.filter(key => this.data.summary[key]);
+    if (summaryEntries.length > 0) {
+      html += `<div class="section-label" style="margin-top:24px">WK${this.data.meta.week.replace('WK','')} UPDATE SUMMARY — 지난 주 대비 변경사항</div>`;
+      html += `<div class="summary-grid">`;
+      summaryEntries.forEach((key, i) => {
+        const s = this.data.summary[key];
+        html += `
+          <div class="summary-card animate-in" style="animation-delay:${i * 100}ms">
+            <div style="position:absolute;left:0;top:0;width:4px;height:100%;background:${s.color}"></div>
+            <div class="summary-source" style="color:${s.color};background:${s.color}15">
+              ${s.source}
+            </div>
+            <div class="summary-content">${this.highlightText(s.content)}</div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
 
     // SECTION: Cards
     if (cards.length > 0) {

@@ -43,6 +43,21 @@ async function runCollection(onlyCategory = null) {
     const { KEYWORDS, IMPACT_RULES } = await getSettings();
     const entries = Object.entries(KEYWORDS).filter(([catId]) => !onlyCategory || catId === onlyCategory);
 
+    // 교차일 중복 방지: '오늘 이전'에 수집된 기사 URL 집합 (같은 날 재실행은 self-필터 안 되게 오늘 0시 기준)
+    const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); // YYYY-MM-DD (KST)
+    const seenUrls = new Set();
+    try {
+      const prev = await all(
+        `SELECT ci.source_url AS url
+         FROM card_items ci JOIN cards c ON ci.card_id = c.id
+         WHERE ci.source_url IS NOT NULL AND c.created_at < $1`,
+        [todayKst + ' 00:00:00']
+      );
+      prev.forEach(r => seenUrls.add(r.url));
+    } catch (e) {
+      console.error('[Collector] prev-url snapshot failed:', e.message);
+    }
+
     for (const [categoryId, config] of entries) {
       if (Date.now() - startTs > BUDGET_MS) {
         const msg = `time budget(${BUDGET_MS}ms) exceeded — remaining categories skipped`;
@@ -87,10 +102,16 @@ async function runCollection(onlyCategory = null) {
           allItems = allItems.concat(await fetchRssFeed(feedUrl));
         }
 
-        // 3. 중복 제거
+        // 3. 중복 제거 (실행 내) + 교차일 중복 제거 (URL 기준)
         allItems = deduplicateItems(allItems);
+        allItems = allItems.filter(it => {
+          if (!it.url) return true;
+          if (seenUrls.has(it.url)) return false;
+          seenUrls.add(it.url); // 이번 실행 내 카테고리 간 중복도 차단
+          return true;
+        });
         if (allItems.length === 0) {
-          console.log(`[Collector] No items for ${categoryId}`);
+          console.log(`[Collector] No new items for ${categoryId}`);
           continue;
         }
 

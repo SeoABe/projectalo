@@ -12,7 +12,7 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 - [x] 수집 종료 시 **N일(기본 14일) 지난 카드 자동 삭제** (`card_items`/`card_tags`는 FK CASCADE)
 - [x] 보존 기간을 환경변수 `RETENTION_DAYS`로 조정 가능하게
 - [x] 대시보드 **기간 필터(오늘/이번주/이번달) 실제 동작**
-- [ ] (선택) 같은 URL 기사 N일 내 재수집 시 스킵하는 교차일 중복 방지
+- [x] 교차일 중복 방지: '오늘 이전' 수집 URL 집합과 대조해 재카드화 스킵
 
 **대상**: [server/collector/scheduler.js](server/collector/scheduler.js), [app.js](app.js)
 
@@ -81,5 +81,11 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 
 ---
 
+## P1 추가 처리 (2026-06-05)
+- [x] **A. 교차일 중복 제거** — 같은 기사 URL이 여러 날 중복 카드화되던 문제 해결([scheduler.js](server/collector/scheduler.js))
+- [x] **B. 빈 요약 섹션 숨김** — summaries 없을 때 "UPDATE SUMMARY" 블록 미표시([app.js](app.js))
+- [~] **C. 크론 검증** — `vercel.json` cron이 production 배포에 등록됨. 무료 티어 로그 보존이 짧아 과거 실행은 API로 확인 불가 → Vercel **Settings→Cron Jobs**(next run) + 매일 08시 KST 이후 관리자 로그로 확인.
+
 ### 진행 현황
-- **2026-06-04**: 1번 착수.
+- **2026-06-04**: 배포 + #1~#5 + 성능 최적화.
+- **2026-06-05**: P1(A·B·C) 처리.
