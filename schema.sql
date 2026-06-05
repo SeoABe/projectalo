@@ -101,8 +101,8 @@ INSERT INTO app_settings (id, keywords, impact_rules) VALUES (
   '{
     "kt": {"searchTerms":["KT 5G","KT 통신","KT 요금제","KT 디지코","KT AICT"],"excludeTerms":["광고","스팸","야구"],"categories":["IT/과학","경제"],"rssFeeds":[]},
     "competitor": {"searchTerms":["SKT 5G","LGU+ 서비스","통신 요금제","MVNO 알뜰폰","이동통신 경쟁"],"excludeTerms":["광고","스팸"],"categories":["IT/과학","경제"],"rssFeeds":[]},
-    "joongang": {"searchTerms":["중앙일보 디지털","중앙일보 AI","중앙일보 미디어","언론사 디지털전환"],"excludeTerms":[],"categories":["IT/과학","사회"],"rssFeeds":["https://rss.joins.com/joins_news_list.xml"]},
-    "hanhwa": {"searchTerms":["한화 방산 수출","한화에어로스페이스","한화 에너지","한화 그린수소","K방산"],"excludeTerms":["주가","증시","보험","야구"],"categories":["정치","경제","세계"],"rssFeeds":[]}
+    "joongang": {"searchTerms":[],"excludeTerms":[],"categories":[],"rssFeeds":[]},
+    "hanhwa": {"searchTerms":["한화 방산 수출","한화에어로스페이스","한화 에너지","한화 그린수소","K방산"],"excludeTerms":[],"categories":["정치","경제","세계"],"rssFeeds":[]}
   }'::jsonb,
   '[
     {"keywords":["규제","법안","개정","과기정통부","공정위","국회"],"impact":"REGULATION","color":"#e74c3c"},
