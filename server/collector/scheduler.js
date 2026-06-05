@@ -4,7 +4,7 @@ const { searchNaverNews } = require('./naverNews');
 const { scrapeJoongangPress } = require('./joongangPress');
 const { scrapeKtPress, scrapeCompetitorPress } = require('./telecomPress');
 const { fetchRssFeed } = require('./rssFeed');
-const { deduplicateItems, groupItemsToCards } = require('./classifier');
+const { deduplicateItems, groupItemsToCards, filterNoise } = require('./classifier');
 const { getSettings } = require('./settings');
 const { q, one, all } = require('../db');
 
@@ -108,6 +108,8 @@ async function runCollection(onlyCategory = null) {
         // 3. 중복 제거 (실행 내) + 교차일 중복 제거 (URL 기준)
         allItems = deduplicateItems(allItems);
         const afterDedup = allItems.length;
+        allItems = filterNoise(allItems); // 스포츠/증시 노이즈 제거
+        const afterNoise = allItems.length;
         allItems = allItems.filter(it => {
           if (!it.url) return true;
           if (seenUrls.has(it.url)) return false;
@@ -117,7 +119,7 @@ async function runCollection(onlyCategory = null) {
         const newCount = allItems.length;
 
         // 진단: 소스/단계별 건수
-        console.log(`[Collector] ${categoryId} counts: main=${mainCount}, rss=${rssCount}, afterDedup=${afterDedup}, new=${newCount}`);
+        console.log(`[Collector] ${categoryId} counts: main=${mainCount}, rss=${rssCount}, afterDedup=${afterDedup}, noiseDropped=${afterDedup - afterNoise}, new=${newCount}`);
 
         if (allItems.length === 0) {
           console.log(`[Collector] No new items for ${categoryId}`);

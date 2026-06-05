@@ -8,6 +8,19 @@ function classifyImpact(title, description, impactRules = []) {
   return { impact: 'NEWS', impactColor: '#64748b' };
 }
 
+// 노이즈 기사 제거 (스포츠/증시 등) — Naver 부정검색(-야구)은 최신결과를 통째로 날리므로
+// 쿼리에 쓰지 않고 수집 후 제목/본문 기준으로 거른다.
+const NOISE_TERMS = [
+  '야구', 'KBL', '농구', '축구', '구단', '이글스', '위즈',
+  '특징주', '관련주', '코스피', '코스닥', '상한가', '하한가', '급등주', '급락주', '마감시황', '주식마감', '깐부'
+];
+function filterNoise(items) {
+  return items.filter(it => {
+    const t = `${it.title || ''} ${it.description || ''}`;
+    return !NOISE_TERMS.some(w => t.includes(w));
+  });
+}
+
 function deduplicateItems(items) {
   const seenKeys = new Set();
   const seenUrls = new Set();
@@ -85,4 +98,4 @@ function extractTags(items) {
     .map(([w]) => w);
 }
 
-module.exports = { classifyImpact, deduplicateItems, groupItemsToCards };
+module.exports = { classifyImpact, deduplicateItems, groupItemsToCards, filterNoise };
