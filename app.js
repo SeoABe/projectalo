@@ -11,9 +11,15 @@ class DashboardApp {
     this.overviewExclude = ['competitor'];
   }
 
+  showLoading() {
+    const el = document.getElementById('mainContent');
+    if (el) el.innerHTML = '<div class="dash-loading"><span class="dash-spinner"></span>불러오는 중…</div>';
+  }
+
   async init() {
     // 로그인 세션 보장 (없으면 로그인 오버레이가 뜨고 여기서 대기)
     if (window.GitAuth) await window.GitAuth.ensureSession();
+    this.showLoading();
     try {
       const res = await fetch('/api/dashboard');
       if (res.ok) {
@@ -61,6 +67,7 @@ class DashboardApp {
     this.currentCategory = categoryId;
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`[data-tab="${categoryId}"]`).classList.add('active');
+    if (categoryId !== 'all' && !(this.data.cards && this.data.cards[categoryId])) this.showLoading();
     await this.ensureCategoryData(categoryId);
     this.renderContent();
   }

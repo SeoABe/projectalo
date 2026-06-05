@@ -14,6 +14,9 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, position, org, badge_text, badge_color, description, category_id } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: 'name은 필수입니다.' });
+    }
     const r = await one(`INSERT INTO profiles (name,position,org,badge_text,badge_color,description,category_id)
       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
       [name, position, org, badge_text, badge_color, description, category_id]);

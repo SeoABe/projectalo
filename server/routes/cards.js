@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { id, title, icon, badge_text, badge_color, date_range, category_id, items, tags } = req.body;
+    if (!category_id || !title) {
+      return res.status(400).json({ error: 'title과 category_id는 필수입니다.' });
+    }
     const cardId = id || `card-${Date.now()}`;
     await q('INSERT INTO cards (id,title,icon,badge_text,badge_color,date_range,category_id) VALUES ($1,$2,$3,$4,$5,$6,$7)',
       [cardId, title, icon || 'file-text', badge_text, badge_color, date_range, category_id]);

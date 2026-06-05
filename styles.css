@@ -370,3 +370,22 @@ body {
   .search-input:focus { width: 200px; }
   .urgent-bar { padding: 0 16px; }
 }
+
+/* 로딩 스피너 */
+.dash-loading {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 64px 0; color: var(--text-muted, #64748b); font-size: 14px;
+}
+.dash-spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid rgba(148,163,184,.35); border-top-color: #3b82f6;
+  animation: dash-spin .7s linear infinite;
+}
+@keyframes dash-spin { to { transform: rotate(360deg); } }
+
+/* 우상단 플로팅 로그아웃 버튼이 헤더 우측 요소를 가리지 않도록 여백 확보 */
+.header-inner { padding-right: 84px; }
+@media (max-width: 640px) {
+  .header-inner { padding-right: 72px; }
+  .week-badge { display: none; }
+}

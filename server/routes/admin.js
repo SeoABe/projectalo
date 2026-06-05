@@ -17,6 +17,9 @@ router.get('/keywords', async (req, res) => {
 router.put('/keywords', async (req, res) => {
   try {
     const { keywords, impactRules } = req.body;
+    if (typeof keywords !== 'object' || keywords === null || !Array.isArray(impactRules)) {
+      return res.status(400).json({ error: 'keywords(object)와 impactRules(array)가 필요합니다.' });
+    }
     await saveSettings(keywords, impactRules);
     res.json({ success: true });
   } catch (err) {
@@ -97,6 +100,9 @@ router.get('/urgents', async (req, res) => {
 router.post('/urgents', async (req, res) => {
   try {
     const { message, category_id, level } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ error: 'message는 필수입니다.' });
+    }
     const r = await one('INSERT INTO urgents (message, category_id, level) VALUES ($1,$2,$3) RETURNING id',
       [message, category_id, level || 'medium']);
     res.json({ success: true, id: r.id });

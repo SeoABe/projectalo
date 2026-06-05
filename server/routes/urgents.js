@@ -11,6 +11,9 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { message, category_id, level } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ error: 'message는 필수입니다.' });
+    }
     const r = await one('INSERT INTO urgents (message,category_id,level) VALUES ($1,$2,$3) RETURNING id',
       [message, category_id, level || 'medium']);
     res.json({ success: true, id: r.id });

@@ -97,19 +97,28 @@ async function runCollection(onlyCategory = null) {
           }
         }
 
+        const mainCount = allItems.length; // 보도자료+네이버
+
         // 2. RSS 피드 수집
         for (const feedUrl of (config.rssFeeds || [])) {
           allItems = allItems.concat(await fetchRssFeed(feedUrl));
         }
+        const rssCount = allItems.length - mainCount;
 
         // 3. 중복 제거 (실행 내) + 교차일 중복 제거 (URL 기준)
         allItems = deduplicateItems(allItems);
+        const afterDedup = allItems.length;
         allItems = allItems.filter(it => {
           if (!it.url) return true;
           if (seenUrls.has(it.url)) return false;
           seenUrls.add(it.url); // 이번 실행 내 카테고리 간 중복도 차단
           return true;
         });
+        const newCount = allItems.length;
+
+        // 진단: 소스/단계별 건수
+        console.log(`[Collector] ${categoryId} counts: main=${mainCount}, rss=${rssCount}, afterDedup=${afterDedup}, new=${newCount}`);
+
         if (allItems.length === 0) {
           console.log(`[Collector] No new items for ${categoryId}`);
           continue;
