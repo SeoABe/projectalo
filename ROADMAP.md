@@ -41,14 +41,15 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 
 ---
 
-## 4. 수집 품질 (빈 탭 줄이기)
+## 4. 수집 품질 (빈 탭 줄이기) — ✅ 완료
 **문제**: KT·한화가 엄격한 카테고리 필터 + 7일 윈도우로 0건이 잦음.
 
 **작업**
-- [ ] 카테고리 필터를 "있으면 가점, 없어도 통과" 식으로 완화하거나 윈도우(7일)를 설정값으로
-- [ ] 소스별(네이버/RSS/보도자료) 수집 건수 노출로 어디서 0건인지 진단 가능하게
+- [x] 카테고리 필터를 **소프트화**: 전부 걸러지면 원본 유지(검색어로 이미 관련성 확보) → 빈 탭 방지
+- [x] 최신성 윈도우를 환경변수 `RECENCY_DAYS`(기본 7)로 조정 가능하게
+- [ ] (보류) 소스별 수집 건수 상세 노출
 
-**대상**: [server/collector/naverNews.js](server/collector/naverNews.js), [server/collector/keywords.js→app_settings]
+**대상**: [server/collector/naverNews.js](server/collector/naverNews.js)
 
 ---
 

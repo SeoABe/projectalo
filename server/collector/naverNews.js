@@ -26,7 +26,8 @@ async function searchNaverNews(query, display = 10, excludeTerms = [], categorie
     });
 
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const recencyDays = parseInt(process.env.RECENCY_DAYS || '7', 10);
+    const sevenDaysAgo = new Date(now.getTime() - (recencyDays * 24 * 60 * 60 * 1000));
 
     let items = (res.data.items || []).map(item => ({
       title: item.title.replace(/<[^>]*>/g, ''),
@@ -43,17 +44,19 @@ async function searchNaverNews(query, display = 10, excludeTerms = [], categorie
     // 내부 저장용 포맷으로 변환 (pubDate 필드 제거)
     items = items.map(({ pubDate, ...rest }) => rest);
 
-    // 카테고리 필터링 (명시된 카테고리 키워드가 기사 제목이나 내용에 포함된 경우만 통과)
+    // 카테고리 필터링 (소프트): 카테고리 키워드가 포함된 기사를 우선하되,
+    // 전부 걸러지면 원본을 유지한다 (검색어로 이미 관련성 확보됨 → 빈 탭 방지)
     if (categories && categories.length > 0) {
-      items = items.filter(item => {
+      const filtered = items.filter(item => {
         return categories.some(cat => {
           // "IT/과학", "생활/문화" 같은 카테고리는 '/' 기준으로 분리해서 하나라도 포함되면 통과
           const subCats = cat.split('/');
-          return subCats.some(sub => 
+          return subCats.some(sub =>
             item.title.includes(sub) || item.description.includes(sub)
           );
         });
       });
+      items = filtered.length > 0 ? filtered : items;
     }
 
     return items;
