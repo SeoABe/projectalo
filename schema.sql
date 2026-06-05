@@ -106,7 +106,7 @@ INSERT INTO app_settings (id, keywords, impact_rules) VALUES (
   }'::jsonb,
   '[
     {"keywords":["규제","법안","개정","과기정통부","공정위","국회"],"impact":"REGULATION","color":"#e74c3c"},
-    {"keywords":["수주","납품계약","공급계약","수출계약","MOU","협약"],"impact":"DEAL","color":"#2ed573"},
+    {"keywords":["수주","계약","체결","MOU","협약"],"impact":"DEAL","color":"#2ed573"},
     {"keywords":["투자","인수","M&A","펀드","출자"],"impact":"INVESTMENT","color":"#e67e22"},
     {"keywords":["인사","대표이사","임원","사장","부회장","교체"],"impact":"PERSONNEL","color":"#e74c3c"},
     {"keywords":["조직","개편","신설","통합","TF","본부"],"impact":"ORG CHANGE","color":"#e67e22"},
