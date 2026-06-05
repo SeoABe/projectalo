@@ -114,7 +114,7 @@ async function runCollection(onlyCategory = null) {
       const days = parseInt(process.env.RETENTION_DAYS || '14', 10);
       const del = await q(
         `DELETE FROM cards
-         WHERE created_at < to_char(timezone('Asia/Seoul', now()) - ($1 * interval '1 day'), 'YYYY-MM-DD HH24:MI:SS')`,
+         WHERE created_at < to_char(timezone('Asia/Seoul', now()) - ($1::int * interval '1 day'), 'YYYY-MM-DD HH24:MI:SS')`,
         [days]
       );
       if (del.rowCount) console.log(`[Collector] Retention: removed ${del.rowCount} cards older than ${days}d`);
