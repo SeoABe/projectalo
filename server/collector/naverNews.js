@@ -21,7 +21,8 @@ async function searchNaverNews(query, display = 10, excludeTerms = [], categorie
       headers: {
         'X-Naver-Client-Id': clientId,
         'X-Naver-Client-Secret': clientSecret
-      }
+      },
+      timeout: 8000
     });
 
     const now = new Date();

@@ -13,13 +13,29 @@ let isRunning = false;
 // onlyCategory 가 주어지면 해당 카테고리만 수집(서버리스 타임아웃 회피용)
 async function runCollection(onlyCategory = null) {
   if (isRunning) {
-    console.log('[Scheduler] Collection already running, skipping.');
+    console.log('[Scheduler] Collection already running (same instance), skipping.');
     return { status: 'skipped', reason: 'already running' };
   }
+
+  // 교차 인스턴스 잠금: 최근 10분 내 'running' 로그가 있으면 스킵 (timeout 시 자동 만료)
+  const running = await one(
+    `SELECT id FROM collection_logs
+     WHERE status='running'
+       AND run_at > to_char(timezone('Asia/Seoul', now() - interval '10 min'), 'YYYY-MM-DD HH24:MI:SS')
+     LIMIT 1`
+  );
+  if (running) {
+    console.log('[Scheduler] Another collection in progress (DB lock), skipping.');
+    return { status: 'skipped', reason: 'already running' };
+  }
+  const lock = await one(`INSERT INTO collection_logs (status, items_collected) VALUES ('running', 0) RETURNING id`);
+  const lockId = lock ? lock.id : null;
 
   isRunning = true;
   let totalItems = 0;
   const errors = [];
+  const startTs = Date.now();
+  const BUDGET_MS = parseInt(process.env.COLLECT_BUDGET_MS || '50000', 10);
 
   console.log('[Collector] Starting data collection...', onlyCategory ? `(category=${onlyCategory})` : '');
 
@@ -28,6 +44,12 @@ async function runCollection(onlyCategory = null) {
     const entries = Object.entries(KEYWORDS).filter(([catId]) => !onlyCategory || catId === onlyCategory);
 
     for (const [categoryId, config] of entries) {
+      if (Date.now() - startTs > BUDGET_MS) {
+        const msg = `time budget(${BUDGET_MS}ms) exceeded — remaining categories skipped`;
+        console.warn('[Collector] ' + msg);
+        errors.push(msg);
+        break;
+      }
       try {
         let allItems = [];
 
@@ -122,9 +144,24 @@ async function runCollection(onlyCategory = null) {
       console.error('[Collector] Retention cleanup failed:', e.message);
     }
 
-    // 수집 로그 기록
-    await q('INSERT INTO collection_logs (status, items_collected, errors) VALUES ($1,$2,$3)',
-      [errors.length > 0 ? 'partial' : 'success', totalItems, errors.join('; ') || null]);
+    // 수집 로그 기록 (잠금 행을 최종 상태로 갱신)
+    const finalStatus = errors.length > 0 ? 'partial' : 'success';
+    if (lockId) {
+      await q('UPDATE collection_logs SET status=$1, items_collected=$2, errors=$3 WHERE id=$4',
+        [finalStatus, totalItems, errors.join('; ') || null, lockId]);
+    } else {
+      await q('INSERT INTO collection_logs (status, items_collected, errors) VALUES ($1,$2,$3)',
+        [finalStatus, totalItems, errors.join('; ') || null]);
+    }
+  } catch (e) {
+    console.error('[Collector] Fatal error:', e.message);
+    errors.push('fatal: ' + e.message);
+    if (lockId) {
+      try {
+        await q('UPDATE collection_logs SET status=$1, items_collected=$2, errors=$3 WHERE id=$4',
+          ['partial', totalItems, errors.join('; '), lockId]);
+      } catch (_) { /* ignore */ }
+    }
   } finally {
     isRunning = false;
   }

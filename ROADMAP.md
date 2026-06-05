@@ -5,28 +5,29 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 
 ---
 
-## 1. 데이터 수명주기 ⭐ (최우선) — 진행 중
+## 1. 데이터 수명주기 ⭐ (최우선) — ✅ 완료
 **문제**: 카드 ID가 `카테고리-impact-날짜`라 매일 새 카드가 쌓이고, 삭제·보존 정책이 없어 시간이 지날수록 옛 카드가 누적된다. 화면이 지저분해지고 Supabase 무료 용량(500MB)도 압박. 대시보드의 기간 필터(오늘/주/월)는 UI만 있고 동작하지 않는다.
 
 **작업**
-- [ ] 수집 종료 시 **N일(기본 14일) 지난 카드 자동 삭제** (`card_items`/`card_tags`는 FK CASCADE)
-- [ ] 보존 기간을 환경변수 `RETENTION_DAYS`로 조정 가능하게
-- [ ] 대시보드 **기간 필터(오늘/이번주/이번달) 실제 동작** — `card_items.date` 기준 클라이언트 필터
+- [x] 수집 종료 시 **N일(기본 14일) 지난 카드 자동 삭제** (`card_items`/`card_tags`는 FK CASCADE)
+- [x] 보존 기간을 환경변수 `RETENTION_DAYS`로 조정 가능하게
+- [x] 대시보드 **기간 필터(오늘/이번주/이번달) 실제 동작**
 - [ ] (선택) 같은 URL 기사 N일 내 재수집 시 스킵하는 교차일 중복 방지
 
 **대상**: [server/collector/scheduler.js](server/collector/scheduler.js), [app.js](app.js)
 
 ---
 
-## 2. 수집 신뢰성
-**문제**: 크론이 4개 카테고리를 통짜로 수집해 60초 타임아웃 위험. `isRunning` 잠금이 서버리스에서 무력해 중복 실행 가능.
+## 2. 수집 신뢰성 — ✅ 완료
+**문제**: 크론이 4개 카테고리를 통짜로 수집해 60초 타임아웃 위험. `isRunning` 잠금이 서버리스에서 무력해 중복 실행 가능. 외부 요청에 타임아웃이 없어 한 요청이 멈추면 함수가 통째로 죽음.
 
 **작업**
-- [ ] 크론을 카테고리 분할 호출로 변경(또는 카테고리 루프에 시간 예산 가드)
-- [ ] DB 기반 잠금(예: `app_settings`에 `collecting_until` 타임스탬프)으로 중복 실행 방지
-- [ ] 수집 결과를 카테고리별로 로그에 남겨 가시성 향상
+- [x] 외부 요청 타임아웃 추가(네이버 8s, 중앙 8s) — hang 방지
+- [x] 카테고리 루프에 **시간 예산 가드**(`COLLECT_BUDGET_MS`, 기본 50s)로 60초 타임아웃 예방
+- [x] **DB 기반 잠금**(collection_logs의 'running' 행, 10분 자동 만료)으로 교차 인스턴스 중복 실행 방지
+- [x] 카테고리별 수집 결과 로그 출력(기존 유지)
 
-**대상**: [server/collector/scheduler.js](server/collector/scheduler.js), [vercel.json](vercel.json)
+**대상**: [server/collector/scheduler.js](server/collector/scheduler.js), [naverNews.js](server/collector/naverNews.js), [joongangPress.js](server/collector/joongangPress.js)
 
 ---
 
