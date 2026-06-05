@@ -31,11 +31,11 @@ Vercel + Supabase 배포 완료 후, 실서비스 운영 품질을 높이기 위
 
 ---
 
-## 3. 코드 정리 (유지보수성)
+## 3. 코드 정리 (유지보수성) — ✅ 완료
 **작업**
-- [ ] 죽은 파일 제거: `server/index.js`(깨진 import), `server/collector/keywords.js`(미사용), `시작.bat`, `runtime/`, `dashboard.db*`
-- [ ] `data.js` 정적 더미를 최신 빈 상태로 정리하거나 제거
-- [ ] "전체 개요" 제외 카테고리(`competitor`)를 **한 곳(설정)** 에서 관리 — 서버/클라 중복 하드코딩 제거
+- [x] 죽은 파일 제거: `server/index.js`, `server/collector/keywords.js`, `시작.bat` (runtime/·dashboard.db*는 애초에 미커밋)
+- [x] "전체 개요" 제외 카테고리를 클라이언트 `overviewExclude` 한 곳에서 관리
+- [ ] (보류) `data.js` 정적 더미 — API 실패 시 fallback이라 안전망으로 유지
 
 **대상**: 루트 정리, [server/routes/dashboard.js](server/routes/dashboard.js), [app.js](app.js)
 

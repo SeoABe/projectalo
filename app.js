@@ -7,6 +7,8 @@ class DashboardApp {
     this.currentDateFilter = 'all';
     this.searchQuery = '';
     this.data = null;
+    // "전체 개요"에서 제외할 카테고리 (한 곳에서 관리)
+    this.overviewExclude = ['competitor'];
   }
 
   async init() {
@@ -134,7 +136,7 @@ class DashboardApp {
 
   getFilteredCards(categoryId) {
     let cardKeys = categoryId === 'all'
-      ? Object.keys(this.data.cards).filter(k => k !== 'competitor')
+      ? Object.keys(this.data.cards).filter(k => !this.overviewExclude.includes(k))
       : [categoryId];
 
     let allCards = [];
@@ -183,12 +185,12 @@ class DashboardApp {
 
     // Urgent
     const urgents = cat === 'all'
-      ? this.data.urgent.filter(u => u.category !== 'competitor')
+      ? this.data.urgent.filter(u => !this.overviewExclude.includes(u.category))
       : this.data.urgent.filter(u => u.category === cat);
 
     // Summary
     let summaryKeys = cat === 'all'
-      ? Object.keys(this.data.summary).filter(k => k !== 'competitor')
+      ? Object.keys(this.data.summary).filter(k => !this.overviewExclude.includes(k))
       : [cat];
 
     // Cards
@@ -196,7 +198,7 @@ class DashboardApp {
 
     // Profiles
     let profileKeys = cat === 'all'
-      ? Object.keys(this.data.profiles).filter(k => k !== 'competitor')
+      ? Object.keys(this.data.profiles).filter(k => !this.overviewExclude.includes(k))
       : [cat];
 
     let html = '';
