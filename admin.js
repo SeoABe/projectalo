@@ -114,8 +114,8 @@ async function runCollect() {
 }
 
 // ── KEYWORDS & IMPACT RULES ───────────────────────────────────────────────────
-const CAT_LABELS = { kt: 'KT이동통신 경쟁사', joongang: '중앙일보', hanhwa: '한화전략부문' };
-const CAT_COLORS = { kt: '#ef4444', joongang: '#3b82f6', hanhwa: '#f59e0b' };
+const CAT_LABELS = { kt: 'KT', competitor: '이동통신 경쟁사', joongang: '중앙일보', hanhwa: '한화전략부문' };
+const CAT_COLORS = { kt: '#ef4444', competitor: '#8b5cf6', joongang: '#3b82f6', hanhwa: '#f59e0b' };
 
 async function loadKeywords() {
   const data = await apiFetch(`${API}/admin/keywords`);
