@@ -407,5 +407,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
   // 로그인 세션 보장 (없으면 로그인 오버레이 표시 후 대기)
   if (window.GitAuth) await window.GitAuth.ensureSession();
+  addAdminRefresh();
   loadDashboard();
 });
+
+function addAdminRefresh() {
+  if (document.getElementById('admin-refresh-btn')) return;
+  const b = document.createElement('button');
+  b.id = 'admin-refresh-btn';
+  b.textContent = '새로고침';
+  b.title = '새로고침';
+  b.onclick = () => location.reload();
+  b.style.cssText = 'position:fixed;top:12px;right:110px;z-index:9999;background:rgba(255,255,255,.06);' +
+    'color:#cbd2e6;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;' +
+    'font-size:12px;cursor:pointer;font-family:inherit;';
+  document.body.appendChild(b);
+}

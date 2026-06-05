@@ -9,11 +9,14 @@ router.get('/', async (req, res) => {
 
     // Meta
     const lastLog = await one('SELECT run_at FROM collection_logs ORDER BY id DESC LIMIT 1');
+    // 한국시간(KST) 기준 날짜·ISO 주차 동적 계산
+    const kst = new Date(Date.now() + 9 * 3600 * 1000); // UTC 필드가 KST 벽시계값
+    const wk = isoWeek(kst);
     const meta = {
       title: "GIT DASHBOARD",
-      week: "WK17",
-      date: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-      prevWeek: "WK16",
+      week: 'WK' + wk,
+      date: `${kst.getUTCFullYear()}.${pad2(kst.getUTCMonth() + 1)}.${pad2(kst.getUTCDate())}`,
+      prevWeek: 'WK' + (wk > 1 ? wk - 1 : wk),
       updatedAt: lastLog ? lastLog.run_at : new Date().toLocaleString('ko-KR')
     };
 
@@ -98,6 +101,18 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+// ISO 주차 번호 (d의 UTC 필드가 KST 벽시계값이라고 가정)
+function isoWeek(d) {
+  const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dayNum = (date.getUTCDay() + 6) % 7; // 월=0
+  date.setUTCDate(date.getUTCDate() - dayNum + 3); // 그 주의 목요일
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const diff = date - firstThursday;
+  return 1 + Math.round(diff / (7 * 24 * 3600 * 1000));
+}
 
 async function getDistinctImpacts() {
   const impacts = await all('SELECT DISTINCT impact FROM card_items WHERE impact IS NOT NULL ORDER BY impact');
